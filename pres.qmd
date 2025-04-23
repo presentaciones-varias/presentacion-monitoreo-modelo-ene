@@ -250,7 +250,7 @@ format:
 
 ![](imagenes/monitoring/evidently_github_01.png){.fragment .fade-in-then-out width="100%"}
 
-![](imagenes/monitoring/evidently_release.png){.fragment width="50%"}
+![](imagenes/monitoring/evidently_release_01.png){.fragment width="50%"}
 
 :::
 
