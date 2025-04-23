@@ -1,0 +1,495 @@
+---
+# title: "Identificación de falseamiento ENUSC"
+# author: "Marzo 2024"
+format:
+  revealjs:
+    auto-stretch: false
+    margin: 0
+    slide-number: true
+    scrollable: true
+    preview-links: auto
+    logo: imagenes/logo_portada2.png
+    css: ine_quarto_styles.css
+    # footer: <https://quarto.org>
+---
+
+#
+
+[]{.linea-superior} 
+[]{.linea-inferior} 
+
+<!---
+ <img src="imagenes/logo_portada2.png" style="width: 20%"/>  
+--->
+
+<img src="imagenes/logo_portada2.png" width="20%"/>  
+
+
+[**Monitoreo de Modelos de Clasificación de Texto**]{.big-par .center-justified}
+[**Ciencia de Datos**]{.medium-par.center-justified}
+
+[**Abril 2025**]{.big-par .center-justified}
+
+
+## [Contenidos]{.big-par}  
+
+<!-- ::: {.incremental} -->
+
+- Motivación
+
+- Modelos entrenados
+
+- Data drift
+
+- Arquitectura de Monitoreo
+
+- Trabajo futuro / Discusión
+
+<!-- - Conclusión -->
+<!-- ::: -->
+
+
+
+## [Motivación I]{.big-par}
+
+::: {.incremental .medium-par}
+- **La Encuesta Nacional de Empleo (ENE)**, a cargo del INE, es la principal fuente de información del mercado laboral del país. 
+  - Es una encuesta mensual que permite conocer la tasa de desocupación del país, así como indicadores de calidad del empleo, proporcionando información actualizada y confiable para la toma de decisiones públicas y privadas.
+  - Identifica y caracteriza a quienes están dentro de la fuerza de trabajo (ocupados y desocupados) y aquellas personas que están fuera de la fuerza de trabajo o inactivos. 
+  - Además, reporta información detallada sobre la calidad de las ocupaciones que se generan en el mercado laboral chileno. 
+- En su flujo de procesamiento, analistas de la ENE utilizan la **codificación automática** para clasificar la ocupación (CIUO-08.CL) y la rama de actividad económica (CAENES) de las personas, al nivel de desagregación de 1 y 2 dígitos.
+  - Cuatro **modelos de machine learning** han sido disponibilizados desde Ciencia de Datos para colaborar en esta tarea: 
+    - **Modelo CIUO a 1 y 2 dígitos.**
+    - **Modelo CAENES a 1 y 2 dígitos.**
+:::
+
+
+
+## [Motivación II]{.big-par}
+
+::: {.incremental .medium-par}
+- **Los modelos de machine learning se degradan con el tiempo**, ya que deben lidiar con casos extremos, bucles de retroalimentación positiva y cambios en la distribución de los datos (*data drift*).
+  - **Casos extremos** (*edge cases*): Son muestras válidas pero atípicas que exponen las debilidades de un modelo en producción, llevándolo a hacer predicciones absurdas o catastróficas.
+    - Los casos extremos son inevitables, pero podemos mitigar su impacto identificando valores atípicos (outliers), diseñando estrategias de contingencia (fallback) y realizando reentrenamientos frecuentes que incluyan estos casos.
+  - **Bucles de retroalimentación positiva** (*positive feedback loops*): Ocurren cuando las predicciones del modelo influyen en los datos futuros de manera que refuerzan su comportamiento, lo que puede generar resultados sesgados.
+  - **Cambios en la distribución** (*data drift*) ocurren cuando los datos en producción difieren de los datos de entrenamiento utilizados para construir el modelo.
+- Solución: **monitoreo periódico y actualización de los modelos**.
+  - En el caso de la ENE, mes a mes analistas nos envían las glosas de ocupación y actividad económica correspondientes a los datos que son publicados oficialmente.
+  - Entonces podemos implementar el monitoreo, **comparando el nuevo dataset mensual (de producción) con el que fue usado originalmente para entrenar los modelos (de referencia)**. 
+:::
+
+
+
+## [Modelos entrenados]{.big-par}
+
+::: {.incremental .medium-par}
+- Los modelos fueron entrenados en Pytorch utilizando una arquitectura **multi-layer gated recurrent unit (GRU) RNN**. 
+- Para mejorar el aprendizaje del modelo, se agregó una capa preliminar que incluye [word embeddings](https://github.com/dccuchile/spanish-word-embeddings/) pre-entrenados.
+  - Los embeddings son representaciones de palabras como vectores numéricos, que permiten modelar la relación semántica entre palabras.
+  - En este caso, los embeddings capturan la relación entre palabras en las glosas de entrenamiento, lo que beneficia al entrenamiento del modelo.
+<!-- - Modelo disponibilizado a través de una API creada en FastAPI. -->
+- Métricas obtenidas:
+:::
+
+::: {.r-stack fragment-index=2 .center}
+
+![](imagenes/monitoring/trained_models_metrics.png){.fragment .fade-in-then-out width="80%"}
+
+:::
+
+
+## [Data drift]{.big-par}
+
+::: {.incremental .medium-par}
+- Cambios en la distribución de la *data* pueden ocurrir debido a errores de código en el procesamiento, variaciones en el esquema de datos de entrada, **cambios en las distribuciones de características** o **cambios en las condiciones del mundo real con el tiempo**.
+:::
+
+::: {.r-stack fragment-index=2 .center}
+
+![](imagenes/monitoring/data_distribution_shifts.png){.fragment .fade-in-then-out width="70%"}
+
+:::
+
+
+
+## [Data drift | Cómo se observa en el tiempo?]{.big-par}
+
+::: {.r-stack fragment-index=2 .center}
+
+![](imagenes/monitoring/data_drift_evolution_type.png){.fragment .fade-in-then-out width="100%"}
+
+:::
+
+
+
+## [Data drift | Principales tipos]{.big-par}
+
+::: {.incremental .medium-par}
+- **Deriva de covariables** (*Covariate drift*): Ocurre cuando la distribución de las variables de entrada cambia, pero la relación entre estas características y la variable objetivo se mantiene igual.
+- **Deriva de etiquetas** (*Label drift*): Sucede cuando la distribución de la variable objetivo cambia, mientras que la relación entre las características de entrada y la variable objetivo permanece constante.
+- **Deriva de concepto** (*Concept drift*): Se produce cuando la relación entre las características de entrada y la variable objetivo varía debido a que los supuestos del modelo ya no son válidos.
+:::
+
+::: {.r-stack fragment-index=2 .center}
+
+![](imagenes/monitoring/data_distribution_shifts_types.png){.fragment .fade-in-then-out width="65%"}
+
+:::
+
+
+
+## [Arquitectura de Monitoreo | General]{.big-par}
+
+::: {.r-stack fragment-index=2 .center}
+
+![](imagenes/monitoring/monitoring_pipeline_01.png){.fragment .fade-in-then-out width="100%"}
+
+![](imagenes/monitoring/monitoring_pipeline_02.png){.fragment .fade-in-then-out width="100%"}
+
+![](imagenes/monitoring/monitoring_pipeline_03.png){.fragment .fade-in-then-out width="100%"}
+
+:::
+
+
+
+## [Arquitectura de Monitoreo | Model prediction]{.big-par}
+
+::: {.r-stack fragment-index=2 .center}
+
+![](imagenes/monitoring/monitoring_pipeline_04.png){.fragment .fade-in-then-out width="100%"}
+
+:::
+
+
+
+## [Arquitectura de Monitoreo | Model prediction]{.big-par}
+
+::: {.r-stack fragment-index=2 .center}
+
+![](imagenes/monitoring/monitoring_pipeline_model_prediction.png){.fragment width="90%"}
+
+:::
+
+::: {.r-stack fragment-index=2 .center}
+
+![](imagenes/monitoring/api_clasificador_01.png){.fragment width="70%"}
+
+:::
+
+::: {.r-stack fragment-index=2 .center}
+
+![](imagenes/monitoring/api_clasificador_02.png){.fragment width="70%"}
+
+:::
+
+
+
+## [Arquitectura de Monitoreo | Model monitoring]{.big-par}
+
+::: {.r-stack fragment-index=2 .center}
+
+![](imagenes/monitoring/monitoring_pipeline_05.png){.fragment .fade-in-then-out width="100%"}
+
+![](imagenes/monitoring/monitoring_pipeline_06.png){.fragment .fade-in-then-out width="100%"}
+
+:::
+
+
+
+## [Arquitectura de Monitoreo | Model monitoring | Data capture]{.big-par}
+
+::: {.r-stack fragment-index=2 .center}
+
+![](imagenes/monitoring/monitoring_pipeline_stages_01.png){.fragment width="50%"}
+
+:::
+
+::: {.r-stack fragment-index=2 .center}
+
+![](imagenes/monitoring/db_data_capture_reference_01.png){.fragment .fade-in-then-out width="100%"}
+
+![](imagenes/monitoring/db_data_capture_reference_02.png){.fragment .fade-in-then-out width="100%"}
+
+:::
+
+
+
+
+## [Arquitectura de Monitoreo | Model monitoring | Data capture]{.big-par}
+
+::: {.r-stack fragment-index=2 .center}
+
+![](imagenes/monitoring/monitoring_pipeline_stages_02.png){.fragment width="50%"}
+
+:::
+
+::: {.r-stack fragment-index=2 .center}
+
+![](imagenes/monitoring/db_data_capture_production_01.png){.fragment .fade-in-then-out width="100%"}
+
+![](imagenes/monitoring/db_data_capture_production_02.png){.fragment .fade-in-then-out width="100%"}
+
+:::
+
+
+
+## [Arquitectura de Monitoreo | Model monitoring | Metrics]{.big-par}
+
+::: {.r-stack fragment-index=2 .center}
+
+![](imagenes/monitoring/monitoring_pipeline_stages_03.png){.fragment width="50%"}
+
+:::
+
+::: {.incremental .medium-par}
+- **Comparamos los dataset de producción y de referencia** (dataset de entrenamiento), aplicando varios tests y métricas proporcionadas por la librería open-source [Evidently](https://docs-old.evidentlyai.com/).
+:::
+
+::: {.r-stack fragment-index=2 .center}
+
+![](imagenes/monitoring/evidently_github_03.png){.fragment .fade-in-then-out width="50%"}
+
+![](imagenes/monitoring/evidently_github_01.png){.fragment width="100%"}
+
+:::
+
+
+
+## [Arquitectura de Monitoreo | Model monitoring | Metrics]{.big-par}
+
+::: {.r-stack fragment-index=2 .center}
+
+![](imagenes/monitoring/monitoring_pipeline_stages_03.png){.fragment width="50%"}
+
+:::
+
+::: {.incremental .medium-par}
+- **1) Test Suite:** creamos tests que hacen chequeos generales sobre columnas **oficio, tareas y actividad **(sólo para CAENES).
+  - Tipos de columnas coindicen.
+  - Número de columnas.
+  - Número de columnas vacías.
+  - Número de filas vacías.
+  - Número de columnas duplicadas.
+  - Número de registros faltantes.
+:::
+
+
+
+## [Arquitectura de Monitoreo | Model monitoring | Metrics]{.big-par}
+
+::: {.r-stack fragment-index=2 .center}
+
+![](imagenes/monitoring/monitoring_pipeline_stages_03.png){.fragment width="50%"}
+
+:::
+
+::: {.incremental .medium-par}
+- **2) Report Text Summary:** calculamos estadísticas generales (mean, std, etc.) para las métricas **Text Length** y **Word Count** aplicadas sobre las columnas **oficio, tareas y actividad **(sólo para CAENES).
+  - **Text Length**: largo del texto en caracteres.
+  - **Word Count**: número de palabras en el texto. 
+:::
+
+
+
+## [Arquitectura de Monitoreo | Model monitoring | Metrics]{.big-par}
+
+::: {.r-stack fragment-index=2 .center}
+
+![](imagenes/monitoring/monitoring_pipeline_stages_03.png){.fragment width="50%"}
+
+:::
+
+::: {.incremental .medium-par}
+- **3) Report Text Drift:** evaluamos data drift sobre las métricas **Text Length** y **Word Count** aplicadas a las columnas **oficio, tareas y actividad** (sólo para CAENES), usando el método de **Wasserstein distance**.
+  - **Wasserstein distance**: mide la distancia entre dos distribuciones de probabilidad, calculando la cantidad mínima de *trabajo* requerido para transformar una distribución en otra.
+      - *Trabajo* se refiere al costo de mover una unidad de masa de probabilidad.
+    - *drift_score* en rango [0, +inf]:
+      - 0 indica que las dos distribuciones son idénticas.
+      - *> threshold* es indicativo de data drift. Por defecto *threshold = 0.1*
+:::
+
+::: {.r-stack fragment-index=2 .center}
+
+![](imagenes/monitoring/wasserstein_distance_01.png){.fragment width="80%"}
+
+:::
+
+
+## [Arquitectura de Monitoreo | Model monitoring | Metrics]{.big-par}
+
+::: {.r-stack fragment-index=2 .center}
+
+![](imagenes/monitoring/monitoring_pipeline_stages_03.png){.fragment width="50%"}
+
+:::
+
+::: {.incremental .medium-par}
+- **4) Report Embedding Drift:** evaluamos data drift en los **embeddings obtenidos para el dataset de producción y referencia**, a partir de los mismos word embeddings pre-entrenados que se usaron en el entrenamiento del modelo.
+  - Se usa un **clasificador binario** para distinguir entre los embeddings calculados para ambos datasets.
+  - Este clasificador retorna valores de **ROC AUC como *drift_score***.
+    - *drift_score* en rango [0, 1].
+    - *> threshold* es indicativo de data drift. Por defecto *threshold = 0.55*
+:::
+
+::: {.r-stack fragment-index=2 .center}
+
+![](imagenes/monitoring/roc_curve_01.png){.fragment .fade-in-then-out width="70%"}
+
+![](imagenes/monitoring/roc_curve_02.png){.fragment width="70%"}
+
+:::
+
+
+## [Arquitectura de Monitoreo | Model monitoring | Metrics]{.big-par}
+
+::: {.r-stack fragment-index=2 .center}
+
+![](imagenes/monitoring/monitoring_pipeline_stages_03.png){.fragment width="50%"}
+
+:::
+
+::: {.incremental .medium-par}
+- **5) Report Prediction Drift:** evaluamos data drift para la columna **prediction** obtenida de las predicciones de cada modelo, usando el método de **Jensen-Shannon distance**.
+  - **Jensen-Shannon distance**: basada en el método **Kullback-Leibler Divergence**, mide la distancia entre dos distribuciones de probabilidad calculando la raíz cuadrada de la **Jensen-Shannon divergence**.
+    - Intuición: mide un *promedio* de todos los cambios en las frecuencias relativas de las categorías.
+    - *drift_score* en rango [0, 1]:
+      - 0 indica que las dos distribuciones son idénticas.
+      - *> threshold* es indicativo de data drift. Por defecto *threshold = 0.1*
+:::
+
+::: {.r-stack fragment-index=2 .center}
+
+![](imagenes/monitoring/jensen-shannon_distance_01.png){.fragment width="70%"}
+
+:::
+
+::: {.r-stack fragment-index=2 .center}
+
+![](imagenes/monitoring/jensen-shannon_distance_02.png){.fragment width="70%"}
+
+:::
+
+
+
+## [Arquitectura de Monitoreo | Model monitoring | Metrics]{.big-par}
+
+::: {.r-stack fragment-index=2 .center}
+
+![](imagenes/monitoring/monitoring_pipeline_stages_03.png){.fragment width="50%"}
+
+:::
+
+::: {.incremental .medium-par}
+- Los resultados entregados por Evidently pueden ser exportados como **HTML, JSON, etc**. Nosotros almacenamos ambos tipos de formato en **MinIO**.
+:::
+
+::: {.r-stack fragment-index=2 .center}
+
+![](imagenes/monitoring/minio_files_03.png){.fragment width="80%"}
+
+:::
+
+
+<!-- ## [Arquitectura de Monitoreo | Model monitoring | Metrics]{.big-par}
+
+::: {.incremental .medium-par}
+- Test Suite
+:::
+
+::: {.r-stack fragment-index=2 .center}
+
+![](imagenes/monitoring/metrics_test_suite.png){.fragment width="100%"}
+
+::: -->
+
+
+
+<!-- ## [Arquitectura de Monitoreo | Model monitoring | Metrics]{.big-par}
+
+::: {.incremental .medium-par}
+- Report Quality Summary
+:::
+
+::: {.r-stack fragment-index=2 .center}
+
+![](imagenes/monitoring/metrics_report_quality_summary.png){.fragment width="100%"}
+
+::: -->
+
+
+
+<!-- ## [Arquitectura de Monitoreo | Model monitoring | Metrics]{.big-par}
+
+::: {.incremental .medium-par}
+- Report Quality Drift
+:::
+
+::: {.r-stack fragment-index=2 .center}
+
+![](imagenes/monitoring/metrics_report_quality_drift_01.png){.fragment width="100%"}
+
+![](imagenes/monitoring/metrics_report_quality_drift_02.png){.fragment width="100%"}
+
+::: -->
+
+
+
+<!-- ## [Arquitectura de Monitoreo | Model monitoring | Metrics]{.big-par}
+
+::: {.incremental .medium-par}
+- Report Embedding Drift
+:::
+
+::: {.r-stack fragment-index=2 .center}
+
+![](imagenes/monitoring/metrics_report_embedding_drift.png){.fragment width="80%"}
+
+::: -->
+
+
+
+## [Arquitectura de Monitoreo | Dashboard]{.big-par}
+
+::: {.r-stack fragment-index=2 .center}
+
+![](imagenes/monitoring/monitoring_pipeline_stages_04.png){.fragment width="50%"}
+
+:::
+
+::: {.r-stack fragment-index=2 .center}
+
+![](imagenes/monitoring/dashboard_monitoreo.png){.fragment width="100%"}
+
+:::
+
+. . .
+
+::: {.center}
+[Veamos el dashboard](http://10.90.10.60:8050/)
+:::
+
+## [Trabajo futuro / Discusión]{.big-par}
+
+::: {.incremental .medium-par}
+- Hacer las gestiones para conseguir etiquetas de la data en producción, para así evaluar peformance de modelos en el tiempo. 
+- Integrar al flujo el re-entrenamiento de modelos.
+  - Debiese ocurrir de acuerdo a criterios que debemos definir en base a las métricas de monitoreo obtenidas. 
+:::
+
+
+
+#
+
+[<img src="imagenes/logo_portada2.png" width="20%"/>]{.center}
+
+[**Monitoreo de Modelos de Clasificación de Texto**]{.big-par .center-justified}
+[**Ciencia de Datos**]{.medium-par.center-justified}
+
+[**Abril 2025**]{.big-par .center-justified}
+
+
+[]{.linea-superior} 
+[]{.linea-inferior} 
+
+
+
