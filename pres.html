@@ -342,8 +342,7 @@
 <h2><span class="big-par">Contenidos</span></h2>
 <!-- ::: {.incremental} -->
 <ul>
-<li><p>Motivación</p></li>
-<li><p>Modelos entrenados</p></li>
+<li><p>Motivación hacia el Monitoreo</p></li>
 <li><p>Data drift</p></li>
 <li><p>Arquitectura de Monitoreo</p></li>
 <li><p>Trabajo futuro / Discusión</p></li>
@@ -351,8 +350,8 @@
 <!-- - Conclusión -->
 <!-- ::: -->
 </section>
-<section id="motivación-i" class="slide level2">
-<h2><span class="big-par">Motivación I</span></h2>
+<section id="motivación-hacia-el-monitoreo-i" class="slide level2">
+<h2><span class="big-par">Motivación hacia el Monitoreo I</span></h2>
 <div class="medium-par">
 <ul>
 <li class="fragment"><strong>La Encuesta Nacional de Empleo (ENE)</strong>, a cargo del INE, es la principal fuente de información del mercado laboral del país.
@@ -361,7 +360,7 @@
 <li class="fragment">Identifica y caracteriza a quienes están dentro de la fuerza de trabajo (ocupados y desocupados) y aquellas personas que están fuera de la fuerza de trabajo o inactivos.</li>
 <li class="fragment">Además, reporta información detallada sobre la calidad de las ocupaciones que se generan en el mercado laboral chileno.</li>
 </ul></li>
-<li class="fragment">En su flujo de procesamiento, analistas de la ENE utilizan la <strong>codificación automática</strong> para clasificar la ocupación (CIUO-08.CL) y la rama de actividad económica (CAENES) de las personas, al nivel de desagregación de 1 y 2 dígitos.
+<li class="fragment">En su flujo de procesamiento, analistas de la ENE utilizan la <strong>codificación automática</strong> para clasificar la ocupación (CIUO) y la rama de actividad económica (CAENES) de las personas, al nivel de desagregación de 1 y 2 dígitos.
 <ul>
 <li class="fragment">Cuatro <strong>modelos de machine learning</strong> han sido disponibilizados desde Ciencia de Datos para colaborar en esta tarea:
 <ul>
@@ -372,11 +371,11 @@
 </ul>
 </div>
 </section>
-<section id="motivación-ii" class="slide level2">
-<h2><span class="big-par">Motivación II</span></h2>
+<section id="motivación-hacia-el-monitoreo-ii" class="slide level2">
+<h2><span class="big-par">Motivación hacia el Monitoreo II</span></h2>
 <div class="medium-par">
 <ul>
-<li class="fragment"><strong>Los modelos de machine learning se degradan con el tiempo</strong>, ya que deben lidiar con casos extremos, bucles de retroalimentación positiva y cambios en la distribución de los datos (<em>data drift</em>).
+<li class="fragment"><strong>Los modelos de machine learning se degradan con el tiempo</strong>, ya que deben lidiar con varios problemas: casos extremos, bucles de retroalimentación positiva y cambios en la distribución de los datos (<em>data drift</em>).
 <ul>
 <li class="fragment"><strong>Casos extremos</strong> (<em>edge cases</em>): Son muestras válidas pero atípicas que exponen las debilidades de un modelo en producción, llevándolo a hacer predicciones absurdas o catastróficas.
 <ul>
@@ -387,27 +386,10 @@
 </ul></li>
 <li class="fragment">Solución: <strong>monitoreo periódico y actualización de los modelos</strong>.
 <ul>
-<li class="fragment">En el caso de la ENE, mes a mes analistas nos envían las glosas de ocupación y actividad económica correspondientes a los datos que son publicados oficialmente.</li>
-<li class="fragment">Entonces podemos implementar el monitoreo, <strong>comparando el nuevo dataset mensual (de producción) con el que fue usado originalmente para entrenar los modelos (de referencia)</strong>.</li>
+<li class="fragment">En el caso de la ENE, mes a mes analistas nos envían las glosas de ocupación y actividad económica correspondientes a los datos de la coyuntura mensual.</li>
+<li class="fragment">Entonces podemos implementar el monitoreo, <strong>comparando el nuevo dataset mensual (de producción) con el que fue usado originalmente para entrenar los modelos (de referencia)</strong> para evaluar la presencia de <strong>data drift</strong>.</li>
 </ul></li>
 </ul>
-</div>
-</section>
-<section id="modelos-entrenados" class="slide level2">
-<h2><span class="big-par">Modelos entrenados</span></h2>
-<div class="medium-par">
-<ul>
-<li class="fragment">Los modelos fueron entrenados en Pytorch utilizando una arquitectura <strong>multi-layer gated recurrent unit (GRU) RNN</strong>.</li>
-<li class="fragment">Para mejorar el aprendizaje del modelo, se agregó una capa preliminar que incluye <a href="https://github.com/dccuchile/spanish-word-embeddings/">word embeddings</a> pre-entrenados.
-<ul>
-<li class="fragment">Los embeddings son representaciones de palabras como vectores numéricos, que permiten modelar la relación semántica entre palabras.</li>
-<li class="fragment">En este caso, los embeddings capturan la relación entre palabras en las glosas de entrenamiento, lo que beneficia al entrenamiento del modelo. <!-- - Modelo disponibilizado a través de una API creada en FastAPI. --></li>
-</ul></li>
-<li class="fragment">Métricas obtenidas:</li>
-</ul>
-</div>
-<div class="r-stack center" data-fragment-index="2">
-<p><img data-src="imagenes/monitoring/trained_models_metrics.png" class="fragment fade-in-then-out" style="width:80.0%"></p>
 </div>
 </section>
 <section id="data-drift" class="slide level2">
@@ -429,15 +411,15 @@
 </section>
 <section id="data-drift-principales-tipos" class="slide level2">
 <h2><span class="big-par">Data drift | Principales tipos</span></h2>
+<div class="center" data-fragment-index="0">
+<p><img data-src="imagenes/monitoring/data_distribution_shifts_types.png" class="fragment" style="width:60.0%"></p>
+</div>
 <div class="medium-par">
 <ul>
 <li class="fragment"><strong>Deriva de covariables</strong> (<em>Covariate drift</em>): Ocurre cuando la distribución de las variables de entrada cambia, pero la relación entre estas características y la variable objetivo se mantiene igual.</li>
 <li class="fragment"><strong>Deriva de etiquetas</strong> (<em>Label drift</em>): Sucede cuando la distribución de la variable objetivo cambia, mientras que la relación entre las características de entrada y la variable objetivo permanece constante.</li>
 <li class="fragment"><strong>Deriva de concepto</strong> (<em>Concept drift</em>): Se produce cuando la relación entre las características de entrada y la variable objetivo varía debido a que los supuestos del modelo ya no son válidos.</li>
 </ul>
-</div>
-<div class="r-stack center" data-fragment-index="2">
-<p><img data-src="imagenes/monitoring/data_distribution_shifts_types.png" class="fragment fade-in-then-out" style="width:65.0%"></p>
 </div>
 </section>
 <section id="arquitectura-de-monitoreo-general" class="slide level2">
@@ -446,6 +428,23 @@
 <p><img data-src="imagenes/monitoring/monitoring_pipeline_01.png" class="fragment fade-in-then-out" style="width:100.0%"></p>
 <p><img data-src="imagenes/monitoring/monitoring_pipeline_02.png" class="fragment fade-in-then-out" style="width:100.0%"></p>
 <p><img data-src="imagenes/monitoring/monitoring_pipeline_03.png" class="fragment fade-in-then-out" style="width:100.0%"></p>
+</div>
+</section>
+<section id="arquitectura-de-monitoreo-model-training" class="slide level2">
+<h2><span class="big-par">Arquitectura de Monitoreo | Model training</span></h2>
+<div class="medium-par">
+<ul>
+<li class="fragment">Los modelos disponibilizados fueron entrenados en Pytorch utilizando una arquitectura <strong>RNN: multi-layer gated recurrent unit (GRU)</strong>.</li>
+<li class="fragment">Para mejorar el aprendizaje del modelo, se agregó una capa preliminar que incluye <a href="https://github.com/dccuchile/spanish-word-embeddings/">word embeddings</a> pre-entrenados.
+<ul>
+<li class="fragment">Los embeddings son representaciones de palabras como vectores numéricos, que permiten modelar la relación semántica entre palabras.</li>
+<li class="fragment">En este caso, los embeddings capturan la relación entre palabras en las glosas de entrenamiento, lo que beneficia al entrenamiento del modelo. <!-- - Modelo disponibilizado a través de una API creada en FastAPI. --></li>
+</ul></li>
+<li class="fragment">Métricas obtenidas:</li>
+</ul>
+</div>
+<div class="r-stack center" data-fragment-index="2">
+<p><img data-src="imagenes/monitoring/trained_models_metrics.png" class="fragment fade-in-then-out" style="width:80.0%"></p>
 </div>
 </section>
 <section id="arquitectura-de-monitoreo-model-prediction" class="slide level2">
@@ -500,12 +499,13 @@
 </div>
 <div class="medium-par">
 <ul>
-<li class="fragment"><strong>Comparamos los dataset de producción y de referencia</strong> (dataset de entrenamiento), aplicando varios tests y métricas proporcionadas por la librería open-source <a href="https://docs-old.evidentlyai.com/">Evidently</a>.</li>
+<li class="fragment"><strong>Comparamos los dataset de producción (coyuntura) y de referencia (entrenamiento)</strong>, aplicando varios tests y métricas proporcionadas por la librería open-source <a href="https://docs-old.evidentlyai.com/">Evidently</a>.</li>
 </ul>
 </div>
 <div class="r-stack center" data-fragment-index="2">
 <p><img data-src="imagenes/monitoring/evidently_github_03.png" class="fragment fade-in-then-out" style="width:50.0%"></p>
-<p><img data-src="imagenes/monitoring/evidently_github_01.png" class="fragment" style="width:100.0%"></p>
+<p><img data-src="imagenes/monitoring/evidently_github_01.png" class="fragment fade-in-then-out" style="width:100.0%"></p>
+<p><img data-src="imagenes/monitoring/evidently_release.png" class="fragment" style="width:50.0%"></p>
 </div>
 </section>
 <section id="arquitectura-de-monitoreo-model-monitoring-metrics-1" class="slide level2">
@@ -534,7 +534,7 @@
 </div>
 <div class="medium-par">
 <ul>
-<li class="fragment"><strong>2) Report Text Summary:</strong> calculamos estadísticas generales (mean, std, etc.) para las métricas <strong>Text Length</strong> y <strong>Word Count</strong> aplicadas sobre las columnas <strong>oficio, tareas y actividad </strong>(sólo para CAENES).
+<li class="fragment"><strong>2) Report Text Summary:</strong> calculamos estadísticas generales (mean, std, etc.) sobre los descriptores <strong>Text Length</strong> y <strong>Word Count</strong> aplicados sobre las columnas <strong>oficio, tareas y actividad </strong>(sólo para CAENES).
 <ul>
 <li class="fragment"><strong>Text Length</strong>: largo del texto en caracteres.</li>
 <li class="fragment"><strong>Word Count</strong>: número de palabras en el texto.</li>
@@ -549,7 +549,7 @@
 </div>
 <div class="medium-par">
 <ul>
-<li class="fragment"><strong>3) Report Text Drift:</strong> evaluamos data drift sobre las métricas <strong>Text Length</strong> y <strong>Word Count</strong> aplicadas a las columnas <strong>oficio, tareas y actividad</strong> (sólo para CAENES), usando el método de <strong>Wasserstein distance</strong>.
+<li class="fragment"><strong>3) Report Text Drift:</strong> evaluamos data drift sobre los descriptores <strong>Text Length</strong> y <strong>Word Count</strong> aplicados a las columnas <strong>oficio, tareas y actividad</strong> (sólo para CAENES), usando el método de <strong>Wasserstein distance</strong>.
 <ul>
 <li class="fragment"><strong>Wasserstein distance</strong>: mide la distancia entre dos distribuciones de probabilidad, calculando la cantidad mínima de <em>trabajo</em> requerido para transformar una distribución en otra.
 <ul>
@@ -574,9 +574,9 @@
 </div>
 <div class="medium-par">
 <ul>
-<li class="fragment"><strong>4) Report Embedding Drift:</strong> evaluamos data drift en los <strong>embeddings obtenidos para el dataset de producción y referencia</strong>, a partir de los mismos word embeddings pre-entrenados que se usaron en el entrenamiento del modelo.
+<li class="fragment"><strong>4) Report Embedding Drift:</strong> evaluamos data drift en los <strong>embeddings obtenidos para el dataset de producción y referencia</strong>, a partir de los mismos word embeddings pre-entrenados usados en el entrenamiento del modelo.
 <ul>
-<li class="fragment">Se usa un <strong>clasificador binario</strong> para distinguir entre los embeddings calculados para ambos datasets.</li>
+<li class="fragment">Se usa un <strong>clasificador binario</strong> para distinguir entre los embeddings calculados desde ambos datasets.</li>
 <li class="fragment">Este clasificador retorna valores de <strong>ROC AUC como <em>drift_score</em></strong>.
 <ul>
 <li class="fragment"><em>drift_score</em> en rango [0, 1].</li>
@@ -597,7 +597,7 @@
 </div>
 <div class="medium-par">
 <ul>
-<li class="fragment"><strong>5) Report Prediction Drift:</strong> evaluamos data drift para la columna <strong>prediction</strong> obtenida de las predicciones de cada modelo, usando el método de <strong>Jensen-Shannon distance</strong>.
+<li class="fragment"><strong>5) Report Prediction Drift:</strong> evaluamos data drift de las <strong>predicciones del modelo obtenidas para el dataset de producción y referencia</strong>, usando el método de <strong>Jensen-Shannon distance</strong>.
 <ul>
 <li class="fragment"><strong>Jensen-Shannon distance</strong>: basada en el método <strong>Kullback-Leibler Divergence</strong>, mide la distancia entre dos distribuciones de probabilidad calculando la raíz cuadrada de la <strong>Jensen-Shannon divergence</strong>.
 <ul>
@@ -696,6 +696,10 @@
 <h2><span class="big-par">Trabajo futuro / Discusión</span></h2>
 <div class="medium-par">
 <ul>
+<li class="fragment">De los resultados obtenidos hasta el momento, vemos indicios de data drift en…
+<ul>
+<li class="fragment">Realizar más tests para confirmar si sería buena idea reentrenar el modelo.</li>
+</ul></li>
 <li class="fragment">Hacer las gestiones para conseguir etiquetas de la data en producción, para así evaluar peformance de modelos en el tiempo.</li>
 <li class="fragment">Integrar al flujo el re-entrenamiento de modelos.
 <ul>
