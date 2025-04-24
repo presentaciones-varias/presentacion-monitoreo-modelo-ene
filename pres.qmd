@@ -459,7 +459,7 @@ format:
 
 ::: {.r-stack fragment-index=2 .center}
 
-![](imagenes/monitoring/dashboard_monitoreo.png){.fragment width="100%"}
+![](imagenes/monitoring/dashboard_monitoreo_02.png){.fragment width="80%"}
 
 :::
 
