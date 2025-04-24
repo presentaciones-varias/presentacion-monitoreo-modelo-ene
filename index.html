@@ -357,10 +357,10 @@
 <li class="fragment"><strong>La Encuesta Nacional de Empleo (ENE)</strong>, a cargo del INE, es la principal fuente de información del mercado laboral del país.
 <ul>
 <li class="fragment">Es una encuesta mensual que permite conocer la tasa de desocupación del país, así como indicadores de calidad del empleo, proporcionando información actualizada y confiable para la toma de decisiones públicas y privadas.</li>
-<li class="fragment">Identifica y caracteriza a quienes están dentro de la fuerza de trabajo (ocupados y desocupados) y aquellas personas que están fuera de la fuerza de trabajo o inactivos.</li>
+<li class="fragment">Busca caracterizar a todas las personas en edad de trabajar (15 años y más), según su situación en el mercado laboral.</li>
 <li class="fragment">Además, reporta información detallada sobre la calidad de las ocupaciones que se generan en el mercado laboral chileno.</li>
 </ul></li>
-<li class="fragment">En su flujo de procesamiento, analistas de la ENE utilizan la <strong>codificación automática</strong> para clasificar la ocupación (CIUO) y la rama de actividad económica (CAENES) de las personas, al nivel de desagregación de 1 y 2 dígitos.
+<li class="fragment">En su flujo de procesamiento, analistas de la ENE utilizan <strong>codificación automática</strong> para clasificar la ocupación (CIUO) y la rama de actividad económica (CAENES) de las personas, al nivel de desagregación de 1 y 2 dígitos.
 <ul>
 <li class="fragment">Cuatro <strong>modelos de machine learning</strong> han sido disponibilizados desde Ciencia de Datos para colaborar en esta tarea:
 <ul>
@@ -379,7 +379,7 @@
 <ul>
 <li class="fragment"><strong>Casos extremos</strong> (<em>edge cases</em>): Son muestras válidas pero atípicas que exponen las debilidades de un modelo en producción, llevándolo a hacer predicciones absurdas o catastróficas.
 <ul>
-<li class="fragment">Los casos extremos son inevitables, pero podemos mitigar su impacto identificando valores atípicos (outliers), diseñando estrategias de contingencia (fallback) y realizando reentrenamientos frecuentes que incluyan estos casos.</li>
+<li class="fragment">Son inevitables, pero podemos mitigar su impacto identificando valores atípicos (outliers), diseñando estrategias de contingencia (fallback) y realizando reentrenamientos frecuentes que incluyan estos casos.</li>
 </ul></li>
 <li class="fragment"><strong>Bucles de retroalimentación positiva</strong> (<em>positive feedback loops</em>): Ocurren cuando las predicciones del modelo influyen en los datos futuros de manera que refuerzan su comportamiento, lo que puede generar resultados sesgados.</li>
 <li class="fragment"><strong>Cambios en la distribución</strong> (<em>data drift</em>) ocurren cuando los datos en producción difieren de los datos de entrenamiento utilizados para construir el modelo.</li>
@@ -387,7 +387,7 @@
 <li class="fragment">Solución: <strong>monitoreo periódico y actualización de los modelos</strong>.
 <ul>
 <li class="fragment">En el caso de la ENE, mes a mes analistas nos envían las glosas de ocupación y actividad económica correspondientes a los datos de la coyuntura mensual.</li>
-<li class="fragment">Entonces podemos implementar el monitoreo, <strong>comparando el nuevo dataset mensual (de producción) con el que fue usado originalmente para entrenar los modelos (de referencia)</strong> para evaluar la presencia de <strong>data drift</strong>.</li>
+<li class="fragment">Entonces podemos implementar el monitoreo: <strong>comparando el nuevo dataset mensual (de producción) versus el que fue usado originalmente para entrenar los modelos (de referencia)</strong>, evaluando la existencia de <strong>data drift</strong>.</li>
 </ul></li>
 </ul>
 </div>
@@ -396,7 +396,7 @@
 <h2><span class="big-par">Data drift</span></h2>
 <div class="medium-par">
 <ul>
-<li class="fragment">Cambios en la distribución de la <em>data</em> pueden ocurrir debido a errores de código en el procesamiento, variaciones en el esquema de datos de entrada, <strong>cambios en las distribuciones de características</strong> o <strong>cambios en las condiciones del mundo real con el tiempo</strong>.</li>
+<li class="fragment">Cambios en la distribución de la <em>data</em> pueden ocurrir debido a errores de código en el procesamiento, variaciones en el esquema de datos de entrada, <strong>cambios en las distribuciones de características (<em>features</em>)</strong> o <strong>cambios en las condiciones del mundo real con el tiempo</strong>.</li>
 </ul>
 </div>
 <div class="r-stack center" data-fragment-index="2">
@@ -438,7 +438,7 @@
 <li class="fragment">Para mejorar el aprendizaje del modelo, se agregó una capa preliminar que incluye <a href="https://github.com/dccuchile/spanish-word-embeddings/">word embeddings</a> pre-entrenados.
 <ul>
 <li class="fragment">Los embeddings son representaciones de palabras como vectores numéricos, que permiten modelar la relación semántica entre palabras.</li>
-<li class="fragment">En este caso, los embeddings capturan la relación entre palabras en las glosas de entrenamiento, lo que beneficia al entrenamiento del modelo. <!-- - Modelo disponibilizado a través de una API creada en FastAPI. --></li>
+<li class="fragment">Los embeddings capturan la relación entre palabras en las glosas de entrenamiento, lo que aumenta la capacidad de aprendizaje del modelo. <!-- - Modelo disponibilizado a través de una API creada en FastAPI. --></li>
 </ul></li>
 <li class="fragment">Métricas obtenidas:</li>
 </ul>
@@ -515,7 +515,7 @@
 </div>
 <div class="medium-par">
 <ul>
-<li class="fragment"><strong>1) Test Suite:</strong> creamos tests que hacen chequeos generales sobre columnas <strong>oficio, tareas y actividad </strong>(sólo para CAENES).
+<li class="fragment"><strong>1) Test Suite:</strong> creamos tests que hacen chequeos generales sobre columnas <strong>oficio, tareas y actividad </strong>(sólo CAENES).
 <ul>
 <li class="fragment">Tipos de columnas coindicen.</li>
 <li class="fragment">Número de columnas.</li>
@@ -534,7 +534,7 @@
 </div>
 <div class="medium-par">
 <ul>
-<li class="fragment"><strong>2) Report Text Summary:</strong> calculamos estadísticas generales (mean, std, etc.) sobre los descriptores <strong>Text Length</strong> y <strong>Word Count</strong> aplicados sobre las columnas <strong>oficio, tareas y actividad </strong>(sólo para CAENES).
+<li class="fragment"><strong>2) Report Text Summary:</strong> calculamos estadísticas generales (mean, std, etc.) sobre los descriptores <strong>Text Length</strong> y <strong>Word Count</strong> aplicados sobre las columnas <strong>oficio, tareas y actividad </strong>(sólo CAENES).
 <ul>
 <li class="fragment"><strong>Text Length</strong>: largo del texto en caracteres.</li>
 <li class="fragment"><strong>Word Count</strong>: número de palabras en el texto.</li>
@@ -549,7 +549,7 @@
 </div>
 <div class="medium-par">
 <ul>
-<li class="fragment"><strong>3) Report Text Drift:</strong> evaluamos data drift sobre los descriptores <strong>Text Length</strong> y <strong>Word Count</strong> aplicados a las columnas <strong>oficio, tareas y actividad</strong> (sólo para CAENES), usando el método de <strong>Wasserstein distance</strong>.
+<li class="fragment"><strong>3) Report Text Drift:</strong> evaluamos data drift sobre los descriptores <strong>Text Length</strong> y <strong>Word Count</strong> aplicados a las columnas <strong>oficio, tareas y actividad</strong> (sólo CAENES), usando el método de <strong>Wasserstein distance</strong>.
 <ul>
 <li class="fragment"><strong>Wasserstein distance</strong>: mide la distancia entre dos distribuciones de probabilidad, calculando la cantidad mínima de <em>trabajo</em> requerido para transformar una distribución en otra.
 <ul>
@@ -597,7 +597,7 @@
 </div>
 <div class="medium-par">
 <ul>
-<li class="fragment"><strong>5) Report Prediction Drift:</strong> evaluamos data drift de las <strong>predicciones del modelo obtenidas para el dataset de producción y referencia</strong>, usando el método de <strong>Jensen-Shannon distance</strong>.
+<li class="fragment"><strong>5) Report Prediction Drift:</strong> evaluamos data drift de las <strong>predicciones del modelo</strong>, usando el método de <strong>Jensen-Shannon distance</strong>.
 <ul>
 <li class="fragment"><strong>Jensen-Shannon distance</strong>: basada en el método <strong>Kullback-Leibler Divergence</strong>, mide la distancia entre dos distribuciones de probabilidad calculando la raíz cuadrada de la <strong>Jensen-Shannon divergence</strong>.
 <ul>
@@ -696,14 +696,22 @@
 <h2><span class="big-par">Trabajo futuro / Discusión</span></h2>
 <div class="medium-par">
 <ul>
-<li class="fragment">De los resultados obtenidos hasta el momento, vemos indicios de data drift en…
+<li class="fragment">De los resultados obtenidos hasta el momento, vemos evidencia de data drift en:
 <ul>
-<li class="fragment">Realizar más tests para confirmar si sería buena idea reentrenar el modelo.</li>
+<li class="fragment">CIUO para <strong>Text Length</strong> y <strong>Word Count</strong> de columna <strong>tareas</strong>.
+<ul>
+<li class="fragment">Significativo para considerar reentrenar el modelo?</li>
 </ul></li>
-<li class="fragment">Hacer las gestiones para conseguir etiquetas de la data en producción, para así evaluar peformance de modelos en el tiempo.</li>
-<li class="fragment">Integrar al flujo el re-entrenamiento de modelos.
+<li class="fragment">CAENES para <strong>Text Length</strong> y <strong>Word Count</strong> de columna <strong>tareas</strong>, pero también para los <strong>Embeddings</strong>.
 <ul>
-<li class="fragment">Debiese ocurrir de acuerdo a criterios que debemos definir en base a las métricas de monitoreo obtenidas.</li>
+<li class="fragment">Caso más significativo, ya que la relación semántica de las palabras en las glosas puede haber cambiado.</li>
+</ul></li>
+<li class="fragment">De todas maneras, podemos realizar tests adicionales con otras métricas para confirmar los resultados y decidir si conviene reentrenar los modelos.</li>
+</ul></li>
+<li class="fragment">Intentar obtener etiquetas de una muestra del dataset de producción, para así evaluar la peformance de los modelos en el tiempo (accuracy, etc).</li>
+<li class="fragment">Integrar a la arquitectura el re-entrenamiento de modelos.
+<ul>
+<li class="fragment">Sujeto a criterios basados en los resultados obtenidos para las métricas de monitoreo.</li>
 </ul></li>
 </ul>
 </div>
